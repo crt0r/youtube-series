@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: node
+  namespace: couchdb-cluster
+spec:
+  serviceName: couchdb
+  replicas: 3
+  selector:
+    matchLabels:
+      app: couchdb
+  template:
+    metadata:
+      labels:
+       app: couchdb
+       svc: couchdb-cluster
+    spec:
+      containers:
+        - name: node
+          image: couchdb:3.2.1
+          volumeMounts:
+            - mountPath: /opt/couchdb/data
+              name: database-storage
+          ports:
+            - containerPort: 5984
+            - containerPort: 4369
+            - containerPort: 4100
+            - containerPort: 4101
+            - containerPort: 4102
+          env:
+            - name: COUCHDB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: couchdb-cluster
+                  key: COUCHDB_USER
+            - name: COUCHDB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: couchdb-cluster
+                  key: COUCHDB_PASSWORD
+            - name: ERL_ARGS
+              value: "-setcookie \"yum\" -kernel inet_dist_listen_max 9102"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NODENAME
+              value: "$(POD_NAME).couchdb.couchdb-cluster.svc.cluster.local"
+  volumeClaimTemplates:
+    - metadata:
+        name: database-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "nfs-storage"
+        resources:
+          requests:
+            storage: 200M

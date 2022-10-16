@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: couchdb
+  namespace: couchdb-cluster
+spec:
+  selector:
+    svc: couchdb-cluster
+  ports:
+    - protocol: TCP
+      name: api
+      port: 5984
+      targetPort: 5984
+    - protocol: TCP
+      name: cluster-internal
+      port: 9100
+      targetPort: 9100
+    - protocol: TCP
+      name: cluster-internal1
+      port: 9101
+      targetPort: 9101
+    - protocol: TCP
+      name: cluster-internal2
+      port: 9102
+      targetPort: 9102
+    - protocol: TCP
+      name: erlang-portmapper
+      port: 4369
+      targetPort: 4369
